@@ -1664,8 +1664,8 @@
   </div>
 
   <script id="pokedex-data" type="application/json">
-    
-	[
+  
+  [
   {
     "id": 1,
     "name": "Bulbasaur",
@@ -4167,8 +4167,8 @@
   }
 ]
 
-	
-  </script>
+  
+    </script>
 
   <script>
     // Game state variables
@@ -4176,11 +4176,11 @@
     const pokemonDataScript = document.getElementById("pokedex-data");
     const jsonData = pokemonDataScript ? pokemonDataScript.textContent.trim() : '';
     try {
-        if (jsonData && !jsonData.includes("YOUR POKEMON JSON DATA GOES HERE")) {
+        if (jsonData && !jsonData.includes("")) {
             pokemonData = JSON.parse(jsonData);
         } else {
             // Don't throw an error if it's just the placeholder
-            if (!jsonData.includes("YOUR POKEMON JSON DATA GOES HERE")) {
+            if (!jsonData.includes("")) {
                  throw new Error("Pokémon data is missing or placeholder is present.");
             }
         }
@@ -6597,8 +6597,7 @@
         return container;
     }
   </script>
-
-  <script>
+<script>
       const installScreen = document.getElementById('install-screen');
       const gameScreen = document.getElementById('game-screen');
       const installButton = document.getElementById('install-button');
@@ -6618,4 +6617,57 @@
           // If in browser, show the install screen and listen for the install prompt
           console.log("Launched in browser mode, showing the install screen.");
           window.addEventListener('beforeinstallprompt', (e) => {
-              // Prevent the default browser pro
+              // Prevent the default browser prompt
+              e.preventDefault();
+              // Stash the event so it can be triggered later
+              deferredPrompt = e;
+              // Update the button to show it's ready
+              installButtonText.textContent = 'Install The App';
+              installButton.disabled = false;
+              console.log("'beforeinstallprompt' event was fired, ready to install.");
+          });
+      }
+
+      // Handle the click on our custom install button
+      installButton.addEventListener('click', async () => {
+          if (!deferredPrompt) {
+              console.log("Install prompt not available.");
+              return;
+          }
+
+          // Show the browser's install prompt
+          deferredPrompt.prompt();
+
+          // Wait for the user to respond to the prompt
+          const { outcome } = await deferredPrompt.userChoice;
+          console.log(`User response to the install prompt: ${outcome}`);
+
+          if (outcome === 'accepted') {
+              installButton.hidden = true;
+              postInstallInstructions.hidden = false;
+          }
+
+          // We've used the prompt, we can't use it again
+          deferredPrompt = null;
+      });
+
+      window.addEventListener('appinstalled', () => {
+          console.log('PWA was installed');
+          deferredPrompt = null;
+      });
+
+      // We still need to register the service worker for the PWA to work
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('sw.js')
+            .then(registration => {
+              console.log('ServiceWorker registration successful with scope: ', registration.scope);
+            })
+            .catch(err => {
+              console.log('ServiceWorker registration failed: ', err);
+            });
+        });
+      }
+  </script>
+</body>
+</html>
