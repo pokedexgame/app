@@ -6597,6 +6597,7 @@
         return container;
     }
   </script>
+
 <script>
       const installScreen = document.getElementById('install-screen');
       const gameScreen = document.getElementById('game-screen');
@@ -6605,27 +6606,34 @@
       const postInstallInstructions = document.getElementById('post-install-instructions');
       let deferredPrompt;
 
-      // This function checks if the app is running in standalone mode (i.e., installed)
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
 
       if (isStandalone) {
-          // If it's installed, hide the install screen and show the game
           console.log("Launched in standalone mode, showing the game.");
           installScreen.hidden = true;
           gameScreen.hidden = false;
       } else {
-          // If in browser, show the install screen and listen for the install prompt
           console.log("Launched in browser mode, showing the install screen.");
+          
+          let installPromptReceived = false;
+
           window.addEventListener('beforeinstallprompt', (e) => {
-              // Prevent the default browser prompt
+              installPromptReceived = true;
               e.preventDefault();
-              // Stash the event so it can be triggered later
               deferredPrompt = e;
-              // Update the button to show it's ready
               installButtonText.textContent = 'Install The App';
               installButton.disabled = false;
               console.log("'beforeinstallprompt' event was fired, ready to install.");
           });
+
+          // Fallback to start the game after a few seconds if no install prompt is received
+          setTimeout(() => {
+              if (!installPromptReceived) {
+                  installScreen.hidden = true;
+                  gameScreen.hidden = false;
+                  console.log("No install prompt received, starting game automatically.");
+              }
+          }, 3000); // 3-second delay
       }
 
       // Handle the click on our custom install button
@@ -6669,5 +6677,6 @@
         });
       }
   </script>
+  
 </body>
 </html>
