@@ -1681,7 +1681,7 @@
   </div>
 
   <script id="pokedex-data" type="application/json">
-    [
+  [
   {
     "id": 1,
     "name": "Bulbasaur",
@@ -6626,7 +6626,10 @@
     document.addEventListener('DOMContentLoaded', initGame);
 
   </script>
-<script>
+
+  <!-- THIS NEW SCRIPT BLOCK IS THE FIX -->
+  <!-- It checks if the app is installed and bypasses the install screen if it is. -->
+  <script>
     // This script handles the PWA installation flow.
     const installScreen = document.getElementById('install-screen');
     const gameScreen = document.getElementById('game-screen');
