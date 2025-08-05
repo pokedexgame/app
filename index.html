@@ -6627,10 +6627,7 @@
 
   </script>
 
-  <!-- THIS NEW SCRIPT BLOCK IS THE FIX -->
-  <!-- It checks if the app is installed and bypasses the install screen if it is. -->
-  <script>
-    // This script handles the PWA installation flow.
+ <script>
     const installScreen = document.getElementById('install-screen');
     const gameScreen = document.getElementById('game-screen');
     const installButton = document.getElementById('install-button');
@@ -6638,78 +6635,63 @@
     const postInstallInstructions = document.getElementById('post-install-instructions');
     let deferredPrompt;
 
+    // Register the service worker to enable PWA functionality.
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(registration => {
+          console.log('ServiceWorker registration successful with scope: ', registration.scope);
+        })
+        .catch(err => {
+          console.log('ServiceWorker registration failed: ', err);
+        });
+    }
+
+    // Listen for the browser's install prompt.
+    window.addEventListener('beforeinstallprompt', (e) => {
+      console.log("'beforeinstallprompt' event was fired.");
+      // Prevent the default prompt from showing.
+      e.preventDefault();
+      // Stash the event so it can be triggered later.
+      deferredPrompt = e;
+      // Update the UI to show the user they can install the PWA.
+      installButtonText.textContent = 'Install The App';
+      installButton.disabled = false;
+    });
+
     // Check if the app is running in standalone (installed) mode.
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
 
     if (isStandalone) {
-        console.log("Launched in standalone mode, showing the game.");
-        installScreen.hidden = true;
-        gameScreen.hidden = false;
+      // If running as an installed app, hide the install screen and show the game.
+      installScreen.hidden = true;
+      gameScreen.hidden = false;
     } else {
-        console.log("Launched in browser mode, showing the install screen.");
-        let installPromptReceived = false;
-
-        window.addEventListener('beforeinstallprompt', (e) => {
-            installPromptReceived = true;
-            e.preventDefault();
-            deferredPrompt = e;
-            installButtonText.textContent = 'Install The App';
-            installButton.disabled = false;
-            console.log("'beforeinstallprompt' event was fired, ready to install.");
-        });
-
-        // Fallback to start the game after a few seconds if no install prompt is received.
-        // This ensures the user isn't stuck if their browser doesn't support the prompt.
-        setTimeout(() => {
-            if (!installPromptReceived) {
-                installScreen.hidden = true;
-                gameScreen.hidden = false;
-                console.log("No install prompt received, starting game automatically.");
-            }
-        }, 3000); // 3-second delay
+      // If running in a browser, do nothing.
+      // This will leave the install screen visible by default, as intended.
+      console.log("Running in a browser. Install screen will remain visible.");
     }
 
     // Handle the click on our custom install button.
     installButton.addEventListener('click', async () => {
-        if (!deferredPrompt) {
-            console.log("Install prompt not available.");
-            return;
-        }
-
-        // Show the browser's install prompt.
-        deferredPrompt.prompt();
-
-        // Wait for the user to respond to the prompt.
-        const { outcome } = await deferredPrompt.userChoice;
-        console.log(`User response to the install prompt: ${outcome}`);
-
-        if (outcome === 'accepted') {
-            installButton.hidden = true;
-            postInstallInstructions.hidden = false;
-        }
-
-        // We've used the prompt, we can't use it again.
-        deferredPrompt = null;
+      if (!deferredPrompt) {
+        return;
+      }
+      // Show the install prompt.
+      deferredPrompt.prompt();
+      // Wait for the user to respond.
+      const { outcome } = await deferredPrompt.userChoice;
+      if (outcome === 'accepted') {
+        installButton.hidden = true;
+        postInstallInstructions.hidden = false;
+      }
+      deferredPrompt = null;
     });
 
     window.addEventListener('appinstalled', () => {
-        console.log('PWA was installed');
-        deferredPrompt = null;
+      console.log('PWA was installed');
+      deferredPrompt = null;
     });
-
-    // Register the service worker for offline capabilities.
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js')
-          .then(registration => {
-            console.log('ServiceWorker registration successful with scope: ', registration.scope);
-          })
-          .catch(err => {
-            console.log('ServiceWorker registration failed: ', err);
-          });
-      });
-    }
-</script>
+  </script>
   
 </body>
 </html>
