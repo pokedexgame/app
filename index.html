@@ -6597,86 +6597,85 @@
         return container;
     }
   </script>
-
 <script>
-      const installScreen = document.getElementById('install-screen');
-      const gameScreen = document.getElementById('game-screen');
-      const installButton = document.getElementById('install-button');
-      const installButtonText = document.getElementById('install-button-text');
-      const postInstallInstructions = document.getElementById('post-install-instructions');
-      let deferredPrompt;
+    const installScreen = document.getElementById('install-screen');
+    const gameScreen = document.getElementById('game-screen');
+    const installButton = document.getElementById('install-button');
+    const installButtonText = document.getElementById('install-button-text');
+    const postInstallInstructions = document.getElementById('post-install-instructions');
+    let deferredPrompt;
 
-      const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
 
-      if (isStandalone) {
-          console.log("Launched in standalone mode, showing the game.");
-          installScreen.hidden = true;
-          gameScreen.hidden = false;
-      } else {
-          console.log("Launched in browser mode, showing the install screen.");
-          
-          let installPromptReceived = false;
+    if (isStandalone) {
+        console.log("Launched in standalone mode, showing the game.");
+        installScreen.hidden = true;
+        gameScreen.hidden = false;
+    } else {
+        console.log("Launched in browser mode, showing the install screen.");
 
-          window.addEventListener('beforeinstallprompt', (e) => {
-              installPromptReceived = true;
-              e.preventDefault();
-              deferredPrompt = e;
-              installButtonText.textContent = 'Install The App';
-              installButton.disabled = false;
-              console.log("'beforeinstallprompt' event was fired, ready to install.");
-          });
+        let installPromptReceived = false;
 
-          // Fallback to start the game after a few seconds if no install prompt is received
-          setTimeout(() => {
-              if (!installPromptReceived) {
-                  installScreen.hidden = true;
-                  gameScreen.hidden = false;
-                  console.log("No install prompt received, starting game automatically.");
-              }
-          }, 3000); // 3-second delay
-      }
-
-      // Handle the click on our custom install button
-      installButton.addEventListener('click', async () => {
-          if (!deferredPrompt) {
-              console.log("Install prompt not available.");
-              return;
-          }
-
-          // Show the browser's install prompt
-          deferredPrompt.prompt();
-
-          // Wait for the user to respond to the prompt
-          const { outcome } = await deferredPrompt.userChoice;
-          console.log(`User response to the install prompt: ${outcome}`);
-
-          if (outcome === 'accepted') {
-              installButton.hidden = true;
-              postInstallInstructions.hidden = false;
-          }
-
-          // We've used the prompt, we can't use it again
-          deferredPrompt = null;
-      });
-
-      window.addEventListener('appinstalled', () => {
-          console.log('PWA was installed');
-          deferredPrompt = null;
-      });
-
-      // We still need to register the service worker for the PWA to work
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('sw.js')
-            .then(registration => {
-              console.log('ServiceWorker registration successful with scope: ', registration.scope);
-            })
-            .catch(err => {
-              console.log('ServiceWorker registration failed: ', err);
-            });
+        window.addEventListener('beforeinstallprompt', (e) => {
+            installPromptReceived = true;
+            e.preventDefault();
+            deferredPrompt = e;
+            installButtonText.textContent = 'Install The App';
+            installButton.disabled = false;
+            console.log("'beforeinstallprompt' event was fired, ready to install.");
         });
-      }
-  </script>
+
+        // Fallback to start the game after a few seconds if no install prompt is received
+        setTimeout(() => {
+            if (!installPromptReceived) {
+                installScreen.hidden = true;
+                gameScreen.hidden = false;
+                console.log("No install prompt received, starting game automatically.");
+            }
+        }, 3000); // 3-second delay
+    }
+
+    // Handle the click on our custom install button
+    installButton.addEventListener('click', async () => {
+        if (!deferredPrompt) {
+            console.log("Install prompt not available.");
+            return;
+        }
+
+        // Show the browser's install prompt
+        deferredPrompt.prompt();
+
+        // Wait for the user to respond to the prompt
+        const { outcome } = await deferredPrompt.userChoice;
+        console.log(`User response to the install prompt: ${outcome}`);
+
+        if (outcome === 'accepted') {
+            installButton.hidden = true;
+            postInstallInstructions.hidden = false;
+        }
+
+        // We've used the prompt, we can't use it again
+        deferredPrompt = null;
+    });
+
+    window.addEventListener('appinstalled', () => {
+        console.log('PWA was installed');
+        deferredPrompt = null;
+    });
+
+    // We still need to register the service worker for the PWA to work
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js')
+          .then(registration => {
+            console.log('ServiceWorker registration successful with scope: ', registration.scope);
+          })
+          .catch(err => {
+            console.log('ServiceWorker registration failed: ', err);
+          });
+      });
+    }
+</script>
   
 </body>
 </html>
