@@ -5,6 +5,23 @@
   <title>The Pokédex Game</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <link rel="manifest" href="manifest.json">
+  <!-- 
+    PWA FIX-IT GUIDE:
+    For your PWA to work correctly on GitHub Pages (or any subdirectory), you need to fix the paths in your other files.
+
+    1. In `manifest.json`:
+       - All paths in "icons" should be relative.
+       - Change: "/icons/icon-192x192.png" -> "icons/icon-192x192.png"
+       - Change: "/icons/icon-512x512.png" -> "icons/icon-512x512.png"
+
+    2. In `sw.js` (Service Worker):
+       - All paths in the `urlsToCache` array must be relative to your project folder.
+       - Change: "/" -> "./"
+       - Change: "/index.html" -> "index.html"
+       - Change all "/sprites/..." paths to "sprites/..."
+       - Example: "/sprites/badge_boulder.png" -> "sprites/badge_boulder.png"
+       - This applies to the dynamically generated Pokémon sprite paths as well.
+  -->
  <style>
     /* --- INSTALL SCREEN STYLES --- */
     #install-screen {
@@ -1664,8 +1681,7 @@
   </div>
 
   <script id="pokedex-data" type="application/json">
-  
-  [
+    [
   {
     "id": 1,
     "name": "Bulbasaur",
@@ -4167,30 +4183,11 @@
   }
 ]
 
-  
-    </script>
+  </script>
 
   <script>
     // Game state variables
     let pokemonData = [];
-    const pokemonDataScript = document.getElementById("pokedex-data");
-    const jsonData = pokemonDataScript ? pokemonDataScript.textContent.trim() : '';
-    try {
-        if (jsonData && !jsonData.includes("")) {
-            pokemonData = JSON.parse(jsonData);
-        } else {
-            // Don't throw an error if it's just the placeholder
-            if (!jsonData.includes("")) {
-                 throw new Error("Pokémon data is missing or placeholder is present.");
-            }
-        }
-    } catch (e) {
-        console.error("Could not parse Pokémon JSON data:", e);
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById("question-text").textContent = "Error: Could not load Pokémon data. Please check the JSON.";
-        });
-    }
-
     let unlocked = {};
     let experience = {};
     let currentPokemon = null;
@@ -4332,6 +4329,22 @@
       buy: createBeepSound(1000, 0.1),
       meowth: createCoinSound()
     };
+    
+    // --- SCRIPT INITIALIZATION ---
+    // This section now handles the case where the JSON data might be missing.
+    
+    const pokemonDataScript = document.getElementById("pokedex-data");
+    const jsonData = pokemonDataScript ? pokemonDataScript.textContent.trim() : '';
+    const isDataMissing = !jsonData || jsonData.startsWith("<!--");
+
+    if (!isDataMissing) {
+        try {
+            pokemonData = JSON.parse(jsonData);
+        } catch (e) {
+            console.error("Could not parse Pokémon JSON data:", e);
+            // The game will continue to load but show an error in initGame().
+        }
+    }
 
     function padId(num) { return String(num).padStart(3, "0"); }
     
@@ -4521,6 +4534,7 @@
     }
 
     function checkAllAchievements() {
+        if (pokemonData.length === 0) return; // Can't check achievements without data
         const unlockedCount = Object.keys(unlocked).length;
         const shinyCount = Object.values(unlocked).filter(p => p === 'shiny').length;
 
@@ -4624,7 +4638,8 @@
 
     function updateAllCounters() {
       const unlockedCount = Object.keys(unlocked).length;
-      document.getElementById("pokedex-counter").textContent = `${unlockedCount} / 151`;
+      const totalPokemon = pokemonData.length > 0 ? pokemonData.length : 151;
+      document.getElementById("pokedex-counter").textContent = `${unlockedCount} / ${totalPokemon}`;
       document.getElementById("streak-counter").textContent = `${currentStreak}`;
       const shinyCount = Object.values(unlocked).filter(p => p === 'shiny').length;
       document.getElementById("shiny-counter").textContent = `${shinyCount}`;
@@ -5674,8 +5689,9 @@
     function updatePokedexUI() {
       const grid = document.getElementById("pokedex-grid");
       grid.innerHTML = "";
+      const totalPokemon = pokemonData.length > 0 ? pokemonData.length : 151;
 
-      for (let i = 1; i <= 151; i++) {
+      for (let i = 1; i <= totalPokemon; i++) {
         const p = pokemonData.find(pokemon => pokemon.id === i);
         const card = document.createElement("div");
         card.className = "pokemon-card";
@@ -6421,13 +6437,14 @@
         const container = document.createElement('div');
         container.className = 'info-panel-content-area';
         const unlockedCount = Object.keys(unlocked).length;
+        const totalPokemon = pokemonData.length > 0 ? pokemonData.length : 151;
         container.innerHTML = `
             <h3>📱 Pokédex</h3>
             <div class="info-display-box">
-                <span class="value">${unlockedCount} / 151</span>
+                <span class="value">${unlockedCount} / ${totalPokemon}</span>
                 <span class="label">Pokémon Caught</span>
             </div>
-            <p>This shows your progress in catching all 151 original Pokémon.</p>
+            <p>This shows your progress in catching all ${totalPokemon} original Pokémon.</p>
             <p>Click on a Pokémon in the grid at the bottom of the main screen to view its detailed entry!</p>
         `;
         return container;
@@ -6510,6 +6527,44 @@
 
         return container;
     }
+    
+    function buildMapView() {
+        const container = document.createElement('div');
+        container.className = 'info-panel-content-area';
+        container.style.display = 'flex';
+        container.style.flexDirection = 'column';
+
+        const title = document.createElement('h3');
+        title.textContent = '🗺️ Kanto Region Map 🗺️';
+        title.style.textAlign = 'center';
+        title.style.color = '#333';
+        title.style.flexShrink = '0';
+        container.appendChild(title);
+        
+        const imageContainer = document.createElement('div');
+        imageContainer.style.flexGrow = '1';
+        imageContainer.style.display = 'flex';
+        imageContainer.style.alignItems = 'center';
+        imageContainer.style.justifyContent = 'center';
+        imageContainer.style.minHeight = '0';
+        imageContainer.style.paddingBottom = '80px';
+
+        const mapImage = document.createElement('img');
+        mapImage.alt = 'Kanto Map';
+        mapImage.style.maxWidth = '100%';
+        mapImage.style.maxHeight = '100%';
+        mapImage.style.border = '3px solid #4682B4';
+        mapImage.style.borderRadius = '10px';
+        mapImage.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
+
+        const badgeCount = Object.keys(earnedBadges).filter(key => !key.startsWith('failed_') && key !== 'champion').length;
+        mapImage.src = LOCATION_UNLOCKS[badgeCount] ? LOCATION_UNLOCKS[badgeCount].map : 'sprites/map8.png';
+
+        imageContainer.appendChild(mapImage);
+        container.appendChild(imageContainer);
+
+        return container;
+    }
 
     // --- EVENT LISTENERS ---
     document.getElementById('pokedex-counter-button').addEventListener('click', () => openInfoPanel(buildPokedexInfoView));
@@ -6550,54 +6605,29 @@
       }
     });
 
+    // --- REVISED GAME INITIALIZATION ---
     function initGame() {
-        if (pokemonData.length > 0) {
-            loadGameData();
-            updatePokedexUI();
-            setupInitialView();
+        loadGameData();
+        updatePokedexUI();
+        setupInitialView();
+
+        if (pokemonData.length === 0) {
+            // If data is still missing after setup, display an error.
+            document.getElementById("question-text").textContent = "Error: Pokémon data not found. Please add the JSON data to the index.html file to play.";
+            document.getElementById("pokemon-display").style.cursor = 'default';
+            const pokemonDisplay = document.getElementById('pokemon-display');
+            // Remove the event listener to prevent starting a broken round
+            const newPokemonDisplay = pokemonDisplay.cloneNode(true);
+            pokemonDisplay.parentNode.replaceChild(newPokemonDisplay, pokemonDisplay);
         }
     }
 
-    initGame();
- function buildMapView() {
-        const container = document.createElement('div');
-        container.className = 'info-panel-content-area';
-        container.style.display = 'flex';
-        container.style.flexDirection = 'column';
+    // Call initGame() once the DOM is ready to be manipulated.
+    document.addEventListener('DOMContentLoaded', initGame);
 
-        const title = document.createElement('h3');
-        title.textContent = '🗺️ Kanto Region Map 🗺️';
-        title.style.textAlign = 'center';
-        title.style.color = '#333';
-        title.style.flexShrink = '0';
-        container.appendChild(title);
-        
-        const imageContainer = document.createElement('div');
-        imageContainer.style.flexGrow = '1';
-        imageContainer.style.display = 'flex';
-        imageContainer.style.alignItems = 'center';
-        imageContainer.style.justifyContent = 'center';
-        imageContainer.style.minHeight = '0';
-        imageContainer.style.paddingBottom = '80px';
-
-        const mapImage = document.createElement('img');
-        mapImage.alt = 'Kanto Map';
-        mapImage.style.maxWidth = '100%';
-        mapImage.style.maxHeight = '100%';
-        mapImage.style.border = '3px solid #4682B4';
-        mapImage.style.borderRadius = '10px';
-        mapImage.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
-
-        const badgeCount = Object.keys(earnedBadges).filter(key => !key.startsWith('failed_') && key !== 'champion').length;
-        mapImage.src = LOCATION_UNLOCKS[badgeCount] ? LOCATION_UNLOCKS[badgeCount].map : 'sprites/map8.png';
-
-        imageContainer.appendChild(mapImage);
-        container.appendChild(imageContainer);
-
-        return container;
-    }
   </script>
 <script>
+    // This script handles the PWA installation flow.
     const installScreen = document.getElementById('install-screen');
     const gameScreen = document.getElementById('game-screen');
     const installButton = document.getElementById('install-button');
@@ -6605,6 +6635,7 @@
     const postInstallInstructions = document.getElementById('post-install-instructions');
     let deferredPrompt;
 
+    // Check if the app is running in standalone (installed) mode.
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
 
     if (isStandalone) {
@@ -6613,7 +6644,6 @@
         gameScreen.hidden = false;
     } else {
         console.log("Launched in browser mode, showing the install screen.");
-
         let installPromptReceived = false;
 
         window.addEventListener('beforeinstallprompt', (e) => {
@@ -6625,7 +6655,8 @@
             console.log("'beforeinstallprompt' event was fired, ready to install.");
         });
 
-        // Fallback to start the game after a few seconds if no install prompt is received
+        // Fallback to start the game after a few seconds if no install prompt is received.
+        // This ensures the user isn't stuck if their browser doesn't support the prompt.
         setTimeout(() => {
             if (!installPromptReceived) {
                 installScreen.hidden = true;
@@ -6635,17 +6666,17 @@
         }, 3000); // 3-second delay
     }
 
-    // Handle the click on our custom install button
+    // Handle the click on our custom install button.
     installButton.addEventListener('click', async () => {
         if (!deferredPrompt) {
             console.log("Install prompt not available.");
             return;
         }
 
-        // Show the browser's install prompt
+        // Show the browser's install prompt.
         deferredPrompt.prompt();
 
-        // Wait for the user to respond to the prompt
+        // Wait for the user to respond to the prompt.
         const { outcome } = await deferredPrompt.userChoice;
         console.log(`User response to the install prompt: ${outcome}`);
 
@@ -6654,7 +6685,7 @@
             postInstallInstructions.hidden = false;
         }
 
-        // We've used the prompt, we can't use it again
+        // We've used the prompt, we can't use it again.
         deferredPrompt = null;
     });
 
@@ -6663,10 +6694,10 @@
         deferredPrompt = null;
     });
 
-    // We still need to register the service worker for the PWA to work
+    // Register the service worker for offline capabilities.
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js?v=2')
+        navigator.serviceWorker.register('sw.js')
           .then(registration => {
             console.log('ServiceWorker registration successful with scope: ', registration.scope);
           })
