@@ -1,5 +1,5 @@
 // A new cache name to ensure a fresh start.
-const CACHE_NAME = 'pokedex-game-cache-v5'; 
+const CACHE_NAME = 'pokedex-game-cache-v6'; // Changed v5 to v6 to force an update
 
 // All paths are relative, which is correct for the service worker itself.
 const urlsToCache = [
