@@ -2,7 +2,7 @@
   "name": "The Pokédex Game",
   "short_name": "PokédexGame",
   "description": "A game to test your Pokémon knowledge.",
-  "start_url": "/index.html",
+  "start_url": ".",
   "display": "standalone",
   "background_color": "#4682B4",
   "theme_color": "#dc143c",
@@ -20,3 +20,4 @@
     }
   ]
 }
+
