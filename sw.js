@@ -1,5 +1,5 @@
 // A new cache name to ensure a fresh start.
-const CACHE_NAME = 'pokedex-game-cache-v7'; 
+const CACHE_NAME = 'pokedex-game-cache-v8'; 
 
 // All paths are relative, which is correct for the service worker itself.
 const urlsToCache = [
@@ -70,3 +70,4 @@ self.addEventListener('fetch', event => {
       })
   );
 });
+
