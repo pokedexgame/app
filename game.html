@@ -28,8 +28,7 @@
     flex-direction: column;
     }
 
-    /* Header with stats */
-    #game-header {
+   #game-header {
     background: rgba(0,0,0,0.8);
     color: white;
     padding: 0.5rem;
@@ -42,7 +41,9 @@
     top: 0;
     z-index: 100;
     flex-shrink: 0; /* Prevent header from shrinking */
-    }
+    /* This adds padding for the top notch */
+    padding-top: calc(0.5rem + env(safe-area-inset-top));
+}
 
     .stat-item {
     display: flex;
@@ -352,7 +353,7 @@
     }
 
 
-    .pokedex-grid {
+  .pokedex-grid {
     display: flex;
     overflow-x: auto;
     overflow-y: hidden;
@@ -364,7 +365,9 @@
     scrollbar-color: #4ecdc4 transparent;
     flex-shrink: 0;
     margin-top: 0.75rem;
-    }
+    /* This adds padding for the bottom navigation bar */
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+}
 
     .pokedex-grid::-webkit-scrollbar { height: 4px; }
     .pokedex-grid::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); border-radius: 4px; }
