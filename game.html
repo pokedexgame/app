@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <title>The Pokédex Game</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <link rel="manifest" href="manifest.json">
   <style>
     /* --- NOTE: This includes ALL game styles from the original file, but excludes the #install-screen styles --- */
@@ -463,6 +463,7 @@
         display: flex;
         flex-direction: column;
         gap: 0.5rem;
+	    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
     }
     /* --- END: LAYOUT STYLES --- */
 
