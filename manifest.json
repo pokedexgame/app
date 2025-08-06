@@ -3,7 +3,7 @@
   "short_name": "PokédexGame",
   "description": "A game to test your Pokémon knowledge.",
   "scope": ".",
-  "start_url": "index.html",
+  "start_url": "game.html",
   "display": "standalone",
   "background_color": "#4682B4",
   "theme_color": "#dc143c",
@@ -12,14 +12,12 @@
     {
       "src": "icons/icon-192x192.png",
       "type": "image/png",
-      "sizes": "192x192",
-      "purpose": "any maskable"
+      "sizes": "192x192"
     },
     {
       "src": "icons/icon-512x512.png",
       "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "any maskable"
+      "sizes": "512x512"
     }
   ]
 }
