@@ -68,15 +68,17 @@
     font-weight: bold;
     }
 
-    /* Main game container */
-    .game-container {
+  /* Main game container */
+.game-container {
     display: flex;
     flex-direction: column;
     flex: 1; /* Allow container to fill remaining vertical space */
     min-height: 0; /* Allow shrinking */
     padding: 1rem;
     gap: 0;
-    }
+    /* This adds padding for the bottom navigation bar */
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+}
 
     /* Pokedex Device */
     .pokedex-device {
